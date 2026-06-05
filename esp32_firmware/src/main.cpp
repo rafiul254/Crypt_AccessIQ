@@ -62,7 +62,6 @@ void setup() {
     pinMode(PIN_BUZZER, OUTPUT);
     digitalWrite(PIN_BUZZER, LOW);
 
-    // All CS pins HIGH
     pinMode(27, OUTPUT); digitalWrite(27, HIGH);
     pinMode(21, OUTPUT); digitalWrite(21, HIGH);
     pinMode(15, OUTPUT); digitalWrite(15, HIGH);
@@ -70,7 +69,6 @@ void setup() {
     Serial.println("[SPI] All CS pins HIGH");
     delay(100);
 
-    // TFT init first
     tft.init();
     tft.setRotation(0);
     tft.startWrite();
@@ -81,11 +79,9 @@ void setup() {
     tftBoot();
     Serial.println("[TFT] Init done");
 
-    // Ensure TFT CS is HIGH after init
     digitalWrite(15, HIGH);
     delay(100);
 
-    // RC522 hardware reset
     Serial.println("[RC522] Hardware reset...");
     pinMode(PIN_RFID_RST, OUTPUT);
     digitalWrite(PIN_RFID_RST, LOW);
@@ -93,18 +89,15 @@ void setup() {
     digitalWrite(PIN_RFID_RST, HIGH);
     delay(100);
 
-    // RC522 init
     SPI.begin(18, 19, 23, PIN_RFID_SS);
     rfid.PCD_Init();
     delay(200);
     rfid.PCD_SetAntennaGain(rfid.RxGain_max);
     delay(50);
 
-    // Version check
     byte rfidVer = rfid.PCD_ReadRegister(MFRC522::VersionReg);
     Serial.printf("[RC522] Version: 0x%02X\n", rfidVer);
 
-    // SPI write-read test
     rfid.PCD_WriteRegister(MFRC522::FIFODataReg, 0x55);
     byte spiTest = rfid.PCD_ReadRegister(MFRC522::FIFODataReg);
     if (spiTest == 0x55) {
@@ -115,7 +108,6 @@ void setup() {
         Serial.println("  >>> They might be SWAPPED on the breadboard!");
     }
 
-    // WiFi
     tftConnecting("Connecting WiFi...");
     connectWiFi();
     if (wifiOK) {
@@ -128,7 +120,7 @@ void setup() {
 
     tftReady();
     Serial.println("[BOOT] Ready!");
-    Serial.println(">>> Card ta RC522 er upore dhoro <<<");
+    Serial.println(">>> Scan the card <<<");
 }
 
 // ================================================================
@@ -139,7 +131,6 @@ void loop() {
         loadUsers(); lastRefreshMs = millis();
     }
 
-    // Only update NTP when WiFi is connected — stops serial spam
     if (wifiOK) timeClient.update();
 
     if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
